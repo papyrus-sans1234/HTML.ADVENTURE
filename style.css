@@ -1,0 +1,51 @@
+
+* {
+    box-sizing: border-box;
+    margin: 0;
+    padding: 0;
+}
+
+body {
+    background: #10101c;
+    color: white;
+    font-family: monospace;
+    min-height: 100vh;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+}
+
+#game-container {
+    width: min(95vw, 900px);
+}
+
+header, footer {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    padding: 15px;
+    background: #202033;
+}
+
+header h1 {
+    font-size: 20px;
+    letter-spacing: 3px;
+}
+
+#connection {
+    color: #fbbf24;
+}
+
+#game {
+    display: block;
+    width: 100%;
+    background: #263b32;
+    image-rendering: pixelated;
+    border: 3px solid #393953;
+}
+
+footer {
+    font-size: 12px;
+    color: #aaa;
+    gap: 10px;
+}
