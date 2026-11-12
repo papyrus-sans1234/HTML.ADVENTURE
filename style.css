@@ -5,22 +5,30 @@
     padding: 0;
 }
 
+html,
 body {
+    width: 100%;
+    min-height: 100%;
     background: #10101c;
     color: white;
     font-family: monospace;
+}
+
+body {
     min-height: 100vh;
     display: flex;
     align-items: center;
     justify-content: center;
     padding: 10px;
+    overflow-x: hidden;
 }
 
 #game-container {
-    width: min(95vw, 900px);
+    width: min(95vw, 1000px);
 }
 
-header, footer {
+header,
+footer {
     display: flex;
     justify-content: space-between;
     align-items: center;
@@ -80,10 +88,18 @@ header h1 {
     font-size: 13px;
 }
 
+#game-stage {
+    position: relative;
+    width: 100%;
+    aspect-ratio: 4 / 3;
+    overflow: hidden;
+    background: #263b32;
+}
+
 #game {
     display: block;
     width: 100%;
-    height: auto;
+    height: 100%;
     background: #263b32;
     image-rendering: pixelated;
     border: 3px solid #393953;
@@ -92,55 +108,74 @@ header h1 {
 
 #mobile-controls {
     display: none;
-    justify-content: space-around;
-    align-items: center;
-    padding: 15px;
-    background: #181829;
+    position: absolute;
+    inset: 0;
+    z-index: 5;
+    align-items: flex-end;
+    justify-content: space-between;
+    padding: 20px 24px;
+    pointer-events: none;
     touch-action: none;
 }
 
-.dpad {
+#joystick-zone {
+    width: 140px;
+    height: 140px;
     display: flex;
-    flex-direction: column;
     align-items: center;
-    gap: 7px;
-}
-
-.middle-controls {
-    display: flex;
-    gap: 45px;
-}
-
-.dpad button,
-#interact-button {
-    border: 2px solid #55557b;
-    border-radius: 10px;
-    background: #30304b;
-    color: white;
-    font-family: monospace;
+    justify-content: center;
+    pointer-events: auto;
     touch-action: none;
     user-select: none;
     -webkit-user-select: none;
 }
 
-.dpad button {
-    width: 65px;
-    height: 55px;
-    font-size: 23px;
+#joystick-base {
+    width: 116px;
+    height: 116px;
+    border-radius: 50%;
+    border: 3px solid #a9b9d4aa;
+    background: #18243c99;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    position: relative;
+    touch-action: none;
+}
+
+#joystick-knob {
+    width: 48px;
+    height: 48px;
+    border-radius: 50%;
+    background: #83b8ff;
+    border: 3px solid #d9eaff;
+    box-shadow: 0 3px 12px #0008;
+    position: absolute;
+    left: 50%;
+    top: 50%;
+    transform: translate(-50%, -50%);
+    pointer-events: none;
 }
 
 #interact-button {
-    padding: 16px 13px;
+    width: 86px;
+    height: 86px;
+    border: 3px solid #d2a84f;
+    border-radius: 50%;
+    background: #59472acc;
+    color: white;
+    font-family: monospace;
     font-weight: bold;
-    font-size: 13px;
-    border-color: #b18c40;
-    background: #59472a;
+    font-size: 12px;
+    pointer-events: auto;
+    touch-action: none;
+    user-select: none;
+    -webkit-user-select: none;
 }
 
-.dpad button:active,
-.dpad button.pressed,
 #interact-button:active {
-    background: #347bc9;
+    background: #98712d;
+    transform: scale(0.95);
 }
 
 body[data-control-mode="mobile"] #mobile-controls {
@@ -152,11 +187,96 @@ footer {
     color: #aaa;
 }
 
-@media (max-width: 500px) {
-    body {
-        align-items: flex-start;
+#rotate-overlay {
+    display: none;
+}
+
+/* MOBILE LANDSCAPE */
+@media (orientation: landscape) and (max-width: 950px) {
+    body[data-control-mode="mobile"] {
+        width: 100%;
+        height: 100dvh;
+        min-height: 0;
+        padding: 0;
+        overflow: hidden;
     }
 
+    body[data-control-mode="mobile"] #game-container {
+        width: 100%;
+        height: 100dvh;
+        max-width: none;
+        display: flex;
+        flex-direction: column;
+    }
+
+    body[data-control-mode="mobile"] header,
+    body[data-control-mode="mobile"] #device-picker,
+    body[data-control-mode="mobile"] #room-info,
+    body[data-control-mode="mobile"] #interaction-hint,
+    body[data-control-mode="mobile"] footer {
+        display: none;
+    }
+
+    body[data-control-mode="mobile"] #game-stage {
+        width: 100%;
+        height: 100%;
+        flex: 1;
+        aspect-ratio: auto;
+    }
+
+    body[data-control-mode="mobile"] #game {
+        width: 100%;
+        height: 100%;
+        border: none;
+    }
+
+    body[data-control-mode="mobile"] #mobile-controls {
+        padding:
+            max(12px, env(safe-area-inset-top))
+            max(20px, env(safe-area-inset-right))
+            max(12px, env(safe-area-inset-bottom))
+            max(20px, env(safe-area-inset-left));
+    }
+}
+
+/* PORTRAIT ROTATION MESSAGE */
+@media (orientation: portrait) and (max-width: 950px) {
+    body[data-control-mode="mobile"] #rotate-overlay {
+        display: flex;
+        position: fixed;
+        inset: 0;
+        z-index: 1000;
+        background: #10101c;
+        align-items: center;
+        justify-content: center;
+        text-align: center;
+        padding: 25px;
+    }
+
+    .rotate-content {
+        max-width: 300px;
+    }
+
+    .rotate-icon {
+        font-size: 65px;
+        margin-bottom: 20px;
+        transform: rotate(-90deg);
+    }
+
+    .rotate-content h2 {
+        font-size: 20px;
+        color: #83b8ff;
+        margin-bottom: 12px;
+    }
+
+    .rotate-content p {
+        color: #aaa;
+        line-height: 1.6;
+    }
+}
+
+/* SMALL DESKTOP */
+@media (max-width: 500px) {
     header h1 {
         font-size: 16px;
     }
@@ -173,18 +293,5 @@ footer {
     #device-picker button {
         padding: 9px;
         font-size: 10px;
-    }
-
-    #mobile-controls {
-        padding: 10px 5px;
-    }
-
-    .middle-controls {
-        gap: 25px;
-    }
-
-    .dpad button {
-        width: 55px;
-        height: 48px;
     }
 }
