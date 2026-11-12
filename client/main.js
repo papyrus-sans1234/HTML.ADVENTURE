@@ -5,6 +5,7 @@ import { drawWorld } from "./world.js";
 import { updateCamera } from "./camera.js";
 import { rooms } from "./rooms.js";
 import { connectMultiplayer } from "./multiplayer.js";
+import { findNearbyDoor } from "./transitions.js";
 
 const canvas = document.getElementById("game");
 const ctx = canvas.getContext("2d");
@@ -12,19 +13,23 @@ const ctx = canvas.getContext("2d");
 canvas.width = 800;
 canvas.height = 600;
 
-const room = rooms.village;
 const camera = { x: 0, y: 0 };
 
 const player = createPlayer("local", 160, 160, "#42a5ff");
 
-const otherPlayers = {};
+let currentRoom = "village";
+let otherPlayers = {};
+let nearbyDoor = null;
 
 const connection = document.getElementById("connection");
 const playerCount = document.getElementById("player-count");
+const roomInfo = document.getElementById("room-info");
+const interactionHint = document.getElementById("interaction-hint");
 
 const network = connectMultiplayer({
     onConnect(id) {
         player.id = id;
+
         connection.textContent = "ONLINE";
         connection.style.color = "#4ade80";
     },
@@ -32,30 +37,48 @@ const network = connectMultiplayer({
     onDisconnect() {
         connection.textContent = "DISCONNECTED";
         connection.style.color = "#f87171";
+
+        otherPlayers = {};
+        updatePlayerCount();
+    },
+
+    onRoomChanged(data) {
+        currentRoom = data.room;
+
+        player.x = data.x;
+        player.y = data.y;
+
+        otherPlayers = {};
+        nearbyDoor = null;
+
+        roomInfo.textContent = rooms[currentRoom].name.toUpperCase();
+
+        interactionHint.textContent = "";
+        updatePlayerCount();
     },
 
     onPlayersUpdate(players) {
-        for (const id in otherPlayers) {
-            if (!players[id]) delete otherPlayers[id];
-        }
+        otherPlayers = {};
 
         for (const id in players) {
-            if (id !== player.id) {
-                if (!otherPlayers[id]) {
-                    otherPlayers[id] = createPlayer(
-                        id, players[id].x, players[id].y, "#ffb347"
-                    );
-                }
+            if (id === player.id) continue;
 
-                otherPlayers[id].x = players[id].x;
-                otherPlayers[id].y = players[id].y;
-            }
+            otherPlayers[id] = createPlayer(
+                id,
+                players[id].x,
+                players[id].y,
+                "#ffb347"
+            );
         }
 
-        playerCount.textContent =
-            "Players: " + Object.keys(players).length;
+        updatePlayerCount();
     }
 });
+
+function updatePlayerCount() {
+    playerCount.textContent =
+        "Players: " + (1 + Object.keys(otherPlayers).length);
+}
 
 function drawPlayer(p) {
     const x = p.x - camera.x;
@@ -72,7 +95,28 @@ function drawPlayer(p) {
     ctx.fillRect(x + 3, y - 4, 3, 3);
 }
 
+function interact() {
+    if (!nearbyDoor) return;
+
+    network.changeRoom(nearbyDoor.id);
+
+    interactionHint.textContent = "Opening door...";
+}
+
+// Desktop interaction
+window.addEventListener("keydown", event => {
+    if (event.key.toLowerCase() === "e" && !event.repeat) {
+        interact();
+    }
+});
+
+// Mobile interaction
+document.getElementById("interact-button")
+    .addEventListener("click", interact);
+
 function gameLoop() {
+    const room = rooms[currentRoom];
+
     updateGame(player, room, network);
 
     updateCamera(camera, player, canvas);
@@ -84,6 +128,15 @@ function gameLoop() {
     }
 
     drawPlayer(player);
+
+    nearbyDoor = findNearbyDoor(player, room);
+
+    if (nearbyDoor) {
+        interactionHint.textContent =
+            "Press E / INTERACT — " + nearbyDoor.label;
+    } else {
+        interactionHint.textContent = "";
+    }
 
     requestAnimationFrame(gameLoop);
 }
