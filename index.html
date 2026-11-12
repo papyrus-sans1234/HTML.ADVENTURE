@@ -5,23 +5,44 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <meta name="theme-color" content="#10101c">
-    <title>Multiplayer Adventure</title>
+    <title>Adventure</title>
     <link rel="stylesheet" href="style.css">
 </head>
 <body>
 
     <div id="game-container">
+
         <header>
             <h1>ADVENTURE</h1>
             <div id="connection">Connecting...</div>
         </header>
 
+        <div id="device-picker">
+            <span>DEVICE:</span>
+            <button id="desktop-mode">DESKTOP</button>
+            <button id="mobile-mode">MOBILE</button>
+        </div>
+
         <canvas id="game"></canvas>
 
+        <div id="mobile-controls">
+            <div class="dpad">
+                <button data-dir="up">▲</button>
+
+                <div class="middle-controls">
+                    <button data-dir="left">◀</button>
+                    <button data-dir="right">▶</button>
+                </div>
+
+                <button data-dir="down">▼</button>
+            </div>
+        </div>
+
         <footer>
-            <span>WASD / Arrow Keys — Move</span>
+            <span id="control-hint">WASD / Arrow Keys — Move</span>
             <span id="player-count">Players: 1</span>
         </footer>
+
     </div>
 
     <script src="/socket.io/socket.io.js"></script>
