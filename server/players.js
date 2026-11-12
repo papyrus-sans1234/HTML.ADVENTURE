@@ -6,8 +6,8 @@ const players = {};
 export function addPlayer(id) {
     players[id] = {
         id,
-        x: 160,
-        y: 160,
+        x: 480,
+        y: 480,
         room: "village"
     };
 
