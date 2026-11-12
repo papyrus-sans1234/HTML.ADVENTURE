@@ -14,18 +14,20 @@ export function connectMultiplayer(callbacks) {
         callbacks.onPlayersUpdate?.(players);
     });
 
-    socket.on("player-joined", player => {
-        callbacks.onPlayerJoined?.(player);
-    });
-
-    socket.on("player-left", id => {
-        callbacks.onPlayerLeft?.(id);
+    socket.on("room-changed", data => {
+        callbacks.onRoomChanged?.(data);
     });
 
     return {
         move(x, y) {
             if (socket.connected) {
                 socket.emit("player-move", { x, y });
+            }
+        },
+
+        changeRoom(doorId) {
+            if (socket.connected) {
+                socket.emit("change-room", doorId);
             }
         }
     };
