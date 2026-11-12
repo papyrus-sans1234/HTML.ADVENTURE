@@ -13,6 +13,7 @@ body {
     display: flex;
     align-items: center;
     justify-content: center;
+    padding: 10px;
 }
 
 #game-container {
@@ -25,6 +26,7 @@ header, footer {
     align-items: center;
     padding: 15px;
     background: #202033;
+    gap: 10px;
 }
 
 header h1 {
@@ -36,16 +38,107 @@ header h1 {
     color: #fbbf24;
 }
 
+#device-picker {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 12px;
+    padding: 12px;
+    background: #181829;
+}
+
+#device-picker button {
+    padding: 9px 16px;
+    border: 1px solid #494968;
+    background: #292943;
+    color: white;
+    font-family: monospace;
+    cursor: pointer;
+    border-radius: 5px;
+}
+
+#device-picker button.active {
+    background: #2767b5;
+    border-color: #62a5ff;
+}
+
 #game {
     display: block;
     width: 100%;
+    height: auto;
     background: #263b32;
     image-rendering: pixelated;
     border: 3px solid #393953;
 }
 
+#mobile-controls {
+    display: none;
+    justify-content: center;
+    padding: 15px;
+    background: #181829;
+    touch-action: none;
+}
+
+.dpad {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 7px;
+}
+
+.middle-controls {
+    display: flex;
+    gap: 45px;
+}
+
+.dpad button {
+    width: 65px;
+    height: 55px;
+    border: 2px solid #55557b;
+    border-radius: 10px;
+    background: #30304b;
+    color: white;
+    font-size: 23px;
+    touch-action: none;
+    user-select: none;
+    -webkit-user-select: none;
+}
+
+.dpad button:active,
+.dpad button.pressed {
+    background: #347bc9;
+    border-color: #82bbff;
+}
+
+body[data-control-mode="mobile"] #mobile-controls {
+    display: flex;
+}
+
 footer {
     font-size: 12px;
     color: #aaa;
-    gap: 10px;
+}
+
+@media (max-width: 500px) {
+    body {
+        align-items: flex-start;
+    }
+
+    header h1 {
+        font-size: 16px;
+    }
+
+    footer {
+        font-size: 10px;
+    }
+
+    #device-picker {
+        gap: 7px;
+        font-size: 11px;
+    }
+
+    #device-picker button {
+        padding: 9px;
+        font-size: 10px;
+    }
 }
