@@ -63,14 +63,24 @@ function makeDoors(definitions) {
 // VILLAGE
 const villageMap = createMap(32, 22, "outdoor");
 
+// First building
 for (let y = 2; y < 8; y++) {
-    for (let x = 3; x < 7; x++) villageMap[y][x] = 3;
+    for (let x = 3; x < 7; x++) {
+        // Keep the original spawn tile clear
+        if (x === 5 && y === 5) continue;
+
+        villageMap[y][x] = 3;
+    }
 }
 
+// Second building
 for (let y = 13; y < 18; y++) {
-    for (let x = 24; x < 28; x++) villageMap[y][x] = 3;
+    for (let x = 24; x < 28; x++) {
+        villageMap[y][x] = 3;
+    }
 }
 
+// Water
 for (let y = 3; y < 7; y++) {
     villageMap[y][10] = 2;
     villageMap[y][11] = 2;
@@ -101,7 +111,9 @@ const forestMap = createMap(32, 22, "outdoor");
 
 for (let y = 2; y < 9; y++) {
     for (let x = 3; x < 9; x++) {
-        if (!(x === 7 && y === 8)) forestMap[y][x] = 3;
+        if (!(x === 7 && y === 8)) {
+            forestMap[y][x] = 3;
+        }
     }
 }
 
@@ -134,11 +146,15 @@ forestDoors.forEach(d => setDoor(forestMap, d.tx, d.ty));
 const caveMap = createMap(32, 22, "cave");
 
 for (let y = 3; y < 8; y++) {
-    for (let x = 3; x < 9; x++) caveMap[y][x] = 3;
+    for (let x = 3; x < 9; x++) {
+        caveMap[y][x] = 3;
+    }
 }
 
 for (let y = 13; y < 19; y++) {
-    for (let x = 23; x < 29; x++) caveMap[y][x] = 3;
+    for (let x = 23; x < 29; x++) {
+        caveMap[y][x] = 3;
+    }
 }
 
 const caveDoors = makeDoors([
@@ -155,7 +171,9 @@ caveDoors.forEach(d => setDoor(caveMap, d.tx, d.ty));
 const houseMap = createMap(18, 16, "interior");
 
 for (let y = 2; y < 6; y++) {
-    for (let x = 3; x < 6; x++) houseMap[y][x] = 3;
+    for (let x = 3; x < 6; x++) {
+        houseMap[y][x] = 3;
+    }
 }
 
 const houseDoors = makeDoors([
@@ -172,7 +190,9 @@ houseDoors.forEach(d => setDoor(houseMap, d.tx, d.ty));
 const shopMap = createMap(18, 16, "interior");
 
 for (let y = 3; y < 6; y++) {
-    for (let x = 11; x < 15; x++) shopMap[y][x] = 3;
+    for (let x = 11; x < 15; x++) {
+        shopMap[y][x] = 3;
+    }
 }
 
 const shopDoors = makeDoors([
@@ -185,6 +205,7 @@ const shopDoors = makeDoors([
 
 shopDoors.forEach(d => setDoor(shopMap, d.tx, d.ty));
 
+// EXPORT ROOMS
 export const rooms = {
     village: {
         name: "Greenfield Village",
