@@ -4,7 +4,7 @@ export function createPlayer(id, x, y, color = "#42a5ff") {
         id,
         x,
         y,
-        speed: 3,
+        speed: 6,
         color,
         size: 18,
         direction: "down"
