@@ -1,8 +1,9 @@
 
 {
-  "name": "multiplayer-adventure",
-  "version": "1.0.0",
+  "name": "html-adventure",
+  "version": "2.0.0",
   "description": "A 2D online multiplayer adventure game",
+  "type": "module",
   "main": "server/server.js",
   "scripts": {
     "start": "node server/server.js"
