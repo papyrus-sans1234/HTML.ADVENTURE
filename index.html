@@ -3,7 +3,7 @@
 <html lang="en">
 <head>
     <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
     <meta name="theme-color" content="#10101c">
     <title>HTML.ADVENTURE</title>
     <link rel="stylesheet" href="style.css">
@@ -27,21 +27,26 @@
 
         <div id="interaction-hint"></div>
 
-        <canvas id="game"></canvas>
+        <div id="game-stage">
+            <canvas id="game"></canvas>
 
-        <div id="mobile-controls">
-            <div class="dpad">
-                <button data-dir="up">▲</button>
-
-                <div class="middle-controls">
-                    <button data-dir="left">◀</button>
-                    <button data-dir="right">▶</button>
+            <div id="mobile-controls">
+                <div id="joystick-zone">
+                    <div id="joystick-base">
+                        <div id="joystick-knob"></div>
+                    </div>
                 </div>
 
-                <button data-dir="down">▼</button>
+                <button id="interact-button">INTERACT</button>
             </div>
+        </div>
 
-            <button id="interact-button">INTERACT</button>
+        <div id="rotate-overlay">
+            <div class="rotate-content">
+                <div class="rotate-icon">📱</div>
+                <h2>ROTATE YOUR DEVICE</h2>
+                <p>HTML.ADVENTURE is designed for landscape mode.</p>
+            </div>
         </div>
 
         <footer>
