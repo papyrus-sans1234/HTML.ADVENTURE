@@ -4,12 +4,15 @@ import { roomConfig } from "./rooms.js";
 const players = {};
 
 export function addPlayer(id) {
-    players[id] = {
-        id,
-        x: 480,
-        y: 480,
-        room: "village"
-    };
+    // Reuse an existing device's player if it reconnects.
+    if (!players[id]) {
+        players[id] = {
+            id,
+            x: 480,
+            y: 480,
+            room: "village"
+        };
+    }
 
     return players[id];
 }
