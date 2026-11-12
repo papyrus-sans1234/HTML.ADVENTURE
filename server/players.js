@@ -1,4 +1,6 @@
 
+import { roomConfig } from "./rooms.js";
+
 const players = {};
 
 export function addPlayer(id) {
@@ -23,10 +25,44 @@ export function movePlayer(id, x, y) {
 
     if (!Number.isFinite(x) || !Number.isFinite(y)) return;
 
-    player.x = Math.max(0, Math.min(640, x));
-    player.y = Math.max(0, Math.min(384, y));
+    const config = roomConfig[player.room];
+
+    if (!config) return;
+
+    // Prevent implausibly large position jumps.
+    if (
+        Math.abs(x - player.x) > 100 ||
+        Math.abs(y - player.y) > 100
+    ) return;
+
+    player.x = Math.max(16, Math.min(config.width - 16, x));
+    player.y = Math.max(16, Math.min(config.height - 16, y));
 }
 
-export function getPlayers() {
-    return players;
+export function changePlayerRoom(id, room, x, y) {
+    const player = players[id];
+
+    if (!player || !roomConfig[room]) return false;
+
+    player.room = room;
+    player.x = x;
+    player.y = y;
+
+    return true;
+}
+
+export function getPlayersInRoom(room) {
+    const result = {};
+
+    for (const id in players) {
+        if (players[id].room === room) {
+            result[id] = players[id];
+        }
+    }
+
+    return result;
+}
+
+export function getPlayer(id) {
+    return players[id];
 }
