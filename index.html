@@ -5,7 +5,7 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <meta name="theme-color" content="#10101c">
-    <title>Adventure</title>
+    <title>HTML.ADVENTURE</title>
     <link rel="stylesheet" href="style.css">
 </head>
 <body>
@@ -23,6 +23,10 @@
             <button id="mobile-mode">MOBILE</button>
         </div>
 
+        <div id="room-info">GREENFIELD VILLAGE</div>
+
+        <div id="interaction-hint"></div>
+
         <canvas id="game"></canvas>
 
         <div id="mobile-controls">
@@ -36,10 +40,12 @@
 
                 <button data-dir="down">▼</button>
             </div>
+
+            <button id="interact-button">INTERACT</button>
         </div>
 
         <footer>
-            <span id="control-hint">WASD / Arrow Keys — Move</span>
+            <span id="control-hint">WASD / Arrows — Move | E — Interact</span>
             <span id="player-count">Players: 1</span>
         </footer>
 
