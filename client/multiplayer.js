@@ -1,9 +1,26 @@
 
-const socket = window.io();
+function getDeviceId() {
+    let deviceId = localStorage.getItem("html-adventure-device-id");
+
+    if (!deviceId) {
+        deviceId = crypto.randomUUID();
+        localStorage.setItem("html-adventure-device-id", deviceId);
+    }
+
+    return deviceId;
+}
+
+const deviceId = getDeviceId();
+
+const socket = window.io({
+    auth: {
+        deviceId
+    }
+});
 
 export function connectMultiplayer(callbacks) {
     socket.on("connect", () => {
-        callbacks.onConnect?.(socket.id);
+        callbacks.onConnect?.(deviceId);
     });
 
     socket.on("disconnect", () => {
