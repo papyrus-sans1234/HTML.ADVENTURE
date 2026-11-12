@@ -10,29 +10,64 @@ import {
 
 import { roomConfig } from "./rooms.js";
 
+// One active socket per device.
+const activeDevices = new Map();
+
 export function setupWorldSync(io) {
     io.on("connection", socket => {
-        const player = addPlayer(socket.id);
+        const deviceId = socket.handshake.auth?.deviceId;
 
-        socket.join("room:village");
+        // Reject missing or invalid device IDs.
+        if (
+            typeof deviceId !== "string" ||
+            deviceId.length < 10 ||
+            deviceId.length > 100
+        ) {
+            socket.disconnect(true);
+            return;
+        }
+
+        // Remember this device's new active connection.
+        const previousSocketId = activeDevices.get(deviceId);
+        activeDevices.set(deviceId, socket.id);
+
+        // Disconnect an older tab using the same device ID.
+        if (previousSocketId && previousSocketId !== socket.id) {
+            const previousSocket =
+                io.sockets.sockets.get(previousSocketId);
+
+            if (previousSocket) {
+                previousSocket.disconnect(true);
+            }
+        }
+
+        socket.data.deviceId = deviceId;
+
+        const player = addPlayer(deviceId);
+        const currentRoom = player.room;
+
+        socket.join(`room:${currentRoom}`);
 
         socket.emit("room-changed", {
-            room: "village",
+            room: currentRoom,
             x: player.x,
             y: player.y
         });
 
-        io.to("room:village").emit(
+        io.to(`room:${currentRoom}`).emit(
             "players-update",
-            getPlayersInRoom("village")
+            getPlayersInRoom(currentRoom)
         );
 
         socket.on("player-move", data => {
             if (!data) return;
 
-            movePlayer(socket.id, data.x, data.y);
+            // Ignore messages from an old connection.
+            if (activeDevices.get(deviceId) !== socket.id) return;
 
-            const currentPlayer = getPlayer(socket.id);
+            movePlayer(deviceId, data.x, data.y);
+
+            const currentPlayer = getPlayer(deviceId);
 
             if (!currentPlayer) return;
 
@@ -43,7 +78,9 @@ export function setupWorldSync(io) {
         });
 
         socket.on("change-room", doorId => {
-            const currentPlayer = getPlayer(socket.id);
+            if (activeDevices.get(deviceId) !== socket.id) return;
+
+            const currentPlayer = getPlayer(deviceId);
 
             if (!currentPlayer) return;
             if (typeof doorId !== "string") return;
@@ -70,7 +107,7 @@ export function setupWorldSync(io) {
             socket.leave(`room:${currentRoom}`);
 
             changePlayerRoom(
-                socket.id,
+                deviceId,
                 destination,
                 selectedDoor.spawnX,
                 selectedDoor.spawnY
@@ -96,11 +133,14 @@ export function setupWorldSync(io) {
         });
 
         socket.on("disconnect", () => {
-            const currentPlayer = getPlayer(socket.id);
+            // An older tab must not remove the newer tab's player.
+            if (activeDevices.get(deviceId) !== socket.id) return;
 
+            const currentPlayer = getPlayer(deviceId);
             const room = currentPlayer?.room;
 
-            removePlayer(socket.id);
+            activeDevices.delete(deviceId);
+            removePlayer(deviceId);
 
             if (room) {
                 io.to(`room:${room}`).emit(
