@@ -1,11 +1,35 @@
 
 const keys = {};
-const touchKeys = new Set();
 
 let controlMode = (
     navigator.maxTouchPoints > 0 ||
     window.matchMedia("(pointer: coarse)").matches
 ) ? "mobile" : "desktop";
+
+let joystickX = 0;
+let joystickY = 0;
+let activePointer = null;
+
+const joystickZone = document.getElementById("joystick-zone");
+const joystickBase = document.getElementById("joystick-base");
+const joystickKnob = document.getElementById("joystick-knob");
+
+// Try to enter fullscreen landscape mode.
+async function requestLandscape() {
+    try {
+        if (!document.fullscreenElement &&
+            document.documentElement.requestFullscreen) {
+            await document.documentElement.requestFullscreen();
+        }
+
+        if (screen.orientation?.lock) {
+            await screen.orientation.lock("landscape");
+        }
+    } catch (error) {
+        // Some browsers do not support orientation locking.
+        console.log("Landscape lock unavailable:", error.message);
+    }
+}
 
 // Keyboard controls
 window.addEventListener("keydown", event => {
@@ -32,7 +56,7 @@ window.addEventListener("keyup", event => {
 
 window.addEventListener("blur", () => {
     Object.keys(keys).forEach(key => keys[key] = false);
-    touchKeys.clear();
+    resetJoystick();
 });
 
 // Device selection
@@ -49,11 +73,17 @@ function setMode(mode) {
 
     document.getElementById("control-hint").textContent =
         mode === "mobile"
-            ? "Touch D-Pad — Move"
-            : "WASD / Arrow Keys — Move";
+            ? "Joystick — Move | INTERACT — Use doors"
+            : "WASD / Arrow Keys — Move | E — Interact";
 
     Object.keys(keys).forEach(key => keys[key] = false);
-    touchKeys.clear();
+    resetJoystick();
+
+    if (mode === "mobile") {
+        requestLandscape();
+    } else if (document.fullscreenElement) {
+        document.exitFullscreen().catch(() => {});
+    }
 }
 
 document.getElementById("desktop-mode")
@@ -62,33 +92,97 @@ document.getElementById("desktop-mode")
 document.getElementById("mobile-mode")
     .addEventListener("click", () => setMode("mobile"));
 
-// Touch controls
-document.querySelectorAll("[data-dir]").forEach(button => {
-    const direction = button.dataset.dir;
+// Allow tapping the rotation message to retry landscape mode.
+document.getElementById("rotate-overlay")
+    .addEventListener("click", requestLandscape);
 
-    button.addEventListener("pointerdown", event => {
-        if (controlMode !== "mobile") return;
+// Joystick controls
+function moveJoystick(event) {
+    const rect = joystickBase.getBoundingClientRect();
 
-        event.preventDefault();
+    const centerX = rect.left + rect.width / 2;
+    const centerY = rect.top + rect.height / 2;
 
-        button.setPointerCapture(event.pointerId);
+    let dx = event.clientX - centerX;
+    let dy = event.clientY - centerY;
 
-        touchKeys.add(direction);
-        button.classList.add("pressed");
-    });
+    const maxDistance = 34;
+    const distance = Math.sqrt(dx * dx + dy * dy);
 
-    function release() {
-        touchKeys.delete(direction);
-        button.classList.remove("pressed");
+    if (distance > maxDistance) {
+        dx = (dx / distance) * maxDistance;
+        dy = (dy / distance) * maxDistance;
     }
 
-    button.addEventListener("pointerup", release);
-    button.addEventListener("pointercancel", release);
-    button.addEventListener("lostpointercapture", release);
-    button.addEventListener("contextmenu", event => {
+    joystickKnob.style.left =
+        `calc(50% + ${dx}px)`;
+
+    joystickKnob.style.top =
+        `calc(50% + ${dy}px)`;
+
+    const magnitude = Math.sqrt(dx * dx + dy * dy);
+
+    if (magnitude < 5) {
+        joystickX = 0;
+        joystickY = 0;
+        return;
+    }
+
+    joystickX = dx / maxDistance;
+    joystickY = dy / maxDistance;
+}
+
+function resetJoystick() {
+    joystickX = 0;
+    joystickY = 0;
+    activePointer = null;
+
+    if (joystickKnob) {
+        joystickKnob.style.left = "50%";
+        joystickKnob.style.top = "50%";
+    }
+}
+
+joystickZone.addEventListener("pointerdown", event => {
+    if (controlMode !== "mobile") return;
+    if (activePointer !== null) return;
+
+    event.preventDefault();
+
+    requestLandscape();
+
+    activePointer = event.pointerId;
+    joystickZone.setPointerCapture(event.pointerId);
+
+    moveJoystick(event);
+});
+
+joystickZone.addEventListener("pointermove", event => {
+    if (event.pointerId !== activePointer) return;
+
+    event.preventDefault();
+    moveJoystick(event);
+});
+
+function releaseJoystick(event) {
+    if (event.pointerId !== activePointer) return;
+
+    resetJoystick();
+}
+
+joystickZone.addEventListener("pointerup", releaseJoystick);
+joystickZone.addEventListener("pointercancel", releaseJoystick);
+joystickZone.addEventListener("lostpointercapture", releaseJoystick);
+
+joystickZone.addEventListener("contextmenu", event => {
+    event.preventDefault();
+});
+
+// Interact button
+document.getElementById("interact-button")
+    .addEventListener("contextmenu", event => {
         event.preventDefault();
     });
-});
 
 setMode(controlMode);
 
@@ -105,13 +199,12 @@ export function getMovement() {
     }
 
     if (controlMode === "mobile") {
-        if (touchKeys.has("up")) dy--;
-        if (touchKeys.has("down")) dy++;
-        if (touchKeys.has("left")) dx--;
-        if (touchKeys.has("right")) dx++;
+        dx = joystickX;
+        dy = joystickY;
     }
 
-    if (dx && dy) {
+    // Normalize keyboard diagonal movement.
+    if (controlMode === "desktop" && dx && dy) {
         dx *= Math.SQRT1_2;
         dy *= Math.SQRT1_2;
     }
