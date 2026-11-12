@@ -6,10 +6,10 @@ import { TILE } from "./world.js";
 export function updateGame(player, room, network) {
     const { dx, dy } = getMovement();
 
+    const radius = player.size / 2;
+
     const nextX = player.x + dx * player.speed;
     const nextY = player.y + dy * player.speed;
-
-    const radius = player.size / 2;
 
     function isBlocked(x, y) {
         const tileX = Math.floor(x / TILE);
@@ -17,16 +17,24 @@ export function updateGame(player, room, network) {
 
         const tile = room.map[tileY]?.[tileX];
 
-        return tile === undefined || tile === 2 || tile === 3;
+        return (
+            tile === undefined ||
+            tile === 2 ||
+            tile === 3
+        );
     }
 
-    if (!isBlocked(nextX - radius, player.y) &&
-        !isBlocked(nextX + radius, player.y)) {
+    if (
+        !isBlocked(nextX - radius, player.y) &&
+        !isBlocked(nextX + radius, player.y)
+    ) {
         updatePlayer(player, dx, 0);
     }
 
-    if (!isBlocked(player.x, nextY - radius) &&
-        !isBlocked(player.x, nextY + radius)) {
+    if (
+        !isBlocked(player.x, nextY - radius) &&
+        !isBlocked(player.x, nextY + radius)
+    ) {
         updatePlayer(player, 0, dy);
     }
 
