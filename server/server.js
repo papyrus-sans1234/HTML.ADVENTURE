@@ -7,6 +7,7 @@ import { fileURLToPath } from "url";
 
 import { setupWorldSync } from "./world-sync.js";
 import { setupBattleNetwork } from "./combat/battle-network.js";
+import { setupNPCNetwork } from "./npcs/npc-network.js";
 
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = path.dirname(__filename);
@@ -28,15 +29,19 @@ app.get("/health", (req, res) => {
     res.json({
         status: "online",
         game: "HTML.ADVENTURE",
-        combat: "enabled"
+        combat: "enabled",
+        npcs: "enabled"
     });
 });
 
-// Existing multiplayer world system.
+// Multiplayer world system.
 setupWorldSync(io);
 
-// New combat and challenge system.
+// Combat and challenge system.
 setupBattleNetwork(io);
+
+// NPC, enemy, and boss data system.
+setupNPCNetwork(io);
 
 const PORT = process.env.PORT || 3000;
 
