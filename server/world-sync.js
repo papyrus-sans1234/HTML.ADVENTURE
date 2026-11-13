@@ -59,6 +59,8 @@ export function setupWorldSync(io) {
             getPlayersInRoom(currentRoom)
         );
 
+        // WORLD MOVEMENT
+
         socket.on("player-move", data => {
             if (!data) return;
 
@@ -76,6 +78,8 @@ export function setupWorldSync(io) {
                 getPlayersInRoom(currentPlayer.room)
             );
         });
+
+        // ROOM TRANSITIONS
 
         socket.on("change-room", doorId => {
             if (activeDevices.get(deviceId) !== socket.id) return;
@@ -104,14 +108,16 @@ export function setupWorldSync(io) {
 
             if (!roomConfig[destination]) return;
 
-            socket.leave(`room:${currentRoom}`);
-
-            changePlayerRoom(
+            const changed = changePlayerRoom(
                 deviceId,
                 destination,
                 selectedDoor.spawnX,
                 selectedDoor.spawnY
             );
+
+            if (!changed) return;
+
+            socket.leave(`room:${currentRoom}`);
 
             socket.join(`room:${destination}`);
 
@@ -131,6 +137,8 @@ export function setupWorldSync(io) {
                 getPlayersInRoom(destination)
             );
         });
+
+        // DISCONNECTION
 
         socket.on("disconnect", () => {
             // An older tab must not remove the newer tab's player.
