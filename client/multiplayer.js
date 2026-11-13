@@ -68,6 +68,10 @@ export function connectMultiplayer(callbacks) {
         callbacks.onRoomChanged?.(data);
     });
 
+    socket.on("world-characters", data => {
+        callbacks.onWorldCharacters?.(data);
+    });
+
 
     // BATTLE EVENTS
 
@@ -100,7 +104,7 @@ export function connectMultiplayer(callbacks) {
     });
 
 
-    // CLIENT NETWORK ACTIONS
+    // NETWORK ACTIONS
 
     return {
 
@@ -108,13 +112,11 @@ export function connectMultiplayer(callbacks) {
 
         move(x, y) {
             if (!socket.connected) return;
-
             socket.emit("player-move", { x, y });
         },
 
         changeRoom(doorId) {
             if (!socket.connected) return;
-
             socket.emit("change-room", doorId);
         },
 
@@ -123,7 +125,6 @@ export function connectMultiplayer(callbacks) {
 
         challengePlayer(targetId) {
             if (!socket.connected) return;
-
             socket.emit("battle-challenge", targetId);
         },
 
@@ -141,13 +142,11 @@ export function connectMultiplayer(callbacks) {
 
         challengeEnemy(enemyId) {
             if (!socket.connected) return;
-
             socket.emit("challenge-enemy", enemyId);
         },
 
         challengeBoss(bossId) {
             if (!socket.connected) return;
-
             socket.emit("challenge-boss", bossId);
         },
 
@@ -156,9 +155,7 @@ export function connectMultiplayer(callbacks) {
 
         battleAction(abilityId) {
             if (!socket.connected) return;
-
             socket.emit("battle-action", abilityId);
         }
-
     };
 }
