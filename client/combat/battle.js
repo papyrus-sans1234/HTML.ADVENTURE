@@ -14,6 +14,11 @@ import {
     disableBattleControls
 } from "./battle-controls.js";
 
+import {
+    playAttackAnimation,
+    clearAttackAnimations
+} from "./attack-renderer.js";
+
 let currentBattle = null;
 let localPlayerId = null;
 let sendAction = null;
@@ -28,6 +33,7 @@ export function startBattle(data) {
 
     currentBattle = data.battle;
 
+    clearAttackAnimations();
     showBattleUI();
     enableBattleControls();
 
@@ -41,6 +47,17 @@ export function receiveBattleUpdate(battle) {
 
     currentBattle = battle;
     refreshBattleUI();
+}
+
+export function receiveBattleAction(action) {
+    if (!currentBattle || !action) return;
+
+    playAttackAnimation({
+        abilityId: action.abilityId,
+        from: action.actorId === localPlayerId
+            ? "player"
+            : "enemy"
+    });
 }
 
 function refreshBattleUI() {
@@ -98,6 +115,7 @@ export function useSelectedAbility() {
 
 export function finishBattle(result) {
     disableBattleControls();
+    clearAttackAnimations();
 
     if (result?.winnerId === localPlayerId) {
         setBattleMessage("YOU WON!");
