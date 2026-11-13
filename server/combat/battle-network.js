@@ -156,6 +156,15 @@ function finishBattle(io, battle) {
     sendBattleEnd(io, battle);
 }
 
+function broadcastBattleAction(io, battle, action) {
+    if (!action) return;
+
+    io.to(`battle:${battle.id}`).emit("battle-action", {
+        ...action,
+        actorId: action.participantId
+    });
+}
+
 function processAction(io, socket, deviceId, abilityId) {
     const battle = getBattleForParticipant(deviceId);
 
@@ -172,18 +181,27 @@ function processAction(io, socket, deviceId, abilityId) {
         return;
     }
 
+    // Broadcast the player's successful attack.
+    broadcastBattleAction(io, battle, result.action);
+
+    // Perform the enemy's turn when applicable.
     if (battle.status === "active") {
         const current = battle.participants[battle.currentTurn];
 
-        if (current?.kind === "enemy" || current?.kind === "boss") {
+        if (
+            current?.kind === "enemy" ||
+            current?.kind === "boss"
+        ) {
             const enemyResult = performEnemyTurn(
                 battle.id,
                 current.id
             );
 
             if (enemyResult.success) {
-                io.to(`battle:${battle.id}`).emit(
-                    "battle-action",
+                // Broadcast the enemy's successful attack.
+                broadcastBattleAction(
+                    io,
+                    battle,
                     enemyResult.action
                 );
             }
@@ -240,9 +258,15 @@ export function setupBattleNetwork(io) {
             challenges.delete(challengeId);
 
             if (data.accepted !== true) {
-                socket.to(connectedSockets.get(data.from)).emit(
-                    "battle-challenge-rejected"
-                );
+                const senderSocketId =
+                    connectedSockets.get(data.from);
+
+                if (senderSocketId) {
+                    io.to(senderSocketId).emit(
+                        "battle-challenge-rejected"
+                    );
+                }
+
                 return;
             }
 
