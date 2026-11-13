@@ -35,6 +35,7 @@ import {
     initializeBattle,
     startBattle,
     receiveBattleUpdate,
+    receiveBattleAction,
     finishBattle,
     isInBattle,
     useSelectedAbility
@@ -194,7 +195,7 @@ const network = connectMultiplayer({
     },
 
     onBattleAction(action) {
-        console.log("Battle action:", action);
+        receiveBattleAction(action);
     },
 
     onBattleChallengeRequest(data) {
