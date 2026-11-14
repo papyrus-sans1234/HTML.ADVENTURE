@@ -9,26 +9,22 @@ import { findNearbyDoor } from "./transitions.js";
 
 import {
     setNPCs,
-    updateNPCManager,
-    getNearbyNPC
+    updateNPCManager
 } from "./npcs/npc-manager.js";
 
 import {
     openDialogue,
-    closeDialogue,
     isDialogueOpen
 } from "./npcs/npc-dialogue.js";
 
 import {
     setEnemies,
-    updateEnemyManager,
-    getNearbyEnemy
+    updateEnemyManager
 } from "./npcs/enemies.js";
 
 import {
     setBosses,
-    updateBossManager,
-    getNearbyBoss
+    updateBossManager
 } from "./npcs/bosses.js";
 
 import {
@@ -37,8 +33,7 @@ import {
     receiveBattleUpdate,
     receiveBattleAction,
     finishBattle,
-    isInBattle,
-    useSelectedAbility
+    isInBattle
 } from "./combat/battle.js";
 
 const canvas = document.getElementById("game");
@@ -56,6 +51,7 @@ let nearbyDoor = null;
 let nearbyNPC = null;
 let nearbyEnemy = null;
 let nearbyBoss = null;
+let nearbyPlayer = null;
 
 const connection = document.getElementById("connection");
 const playerCount = document.getElementById("player-count");
@@ -82,11 +78,39 @@ function drawPlayer(p) {
     ctx.fillRect(x + 3, y - 4, 3, 3);
 }
 
+function findNearbyPlayer() {
+    let closest = null;
+    let closestDistance = 100;
+
+    for (const id in otherPlayers) {
+        const target = otherPlayers[id];
+
+        const distance = Math.hypot(
+            player.x - target.x,
+            player.y - target.y
+        );
+
+        if (distance <= closestDistance) {
+            closestDistance = distance;
+            closest = target;
+        }
+    }
+
+    return closest;
+}
+
 function interact() {
     if (isInBattle() || isDialogueOpen()) return;
 
     if (nearbyNPC) {
         openDialogue(nearbyNPC);
+        return;
+    }
+
+    if (nearbyPlayer) {
+        network.challengePlayer(nearbyPlayer.id);
+        interactionHint.textContent =
+            "Challenge sent to " + nearbyPlayer.id + "...";
         return;
     }
 
@@ -135,6 +159,7 @@ const network = connectMultiplayer({
         connection.style.color = "#f87171";
 
         otherPlayers = {};
+        nearbyPlayer = null;
         updatePlayerCount();
     },
 
@@ -148,6 +173,7 @@ const network = connectMultiplayer({
         nearbyNPC = null;
         nearbyEnemy = null;
         nearbyBoss = null;
+        nearbyPlayer = null;
 
         roomInfo.textContent =
             rooms[currentRoom].name.toUpperCase();
@@ -240,12 +266,16 @@ function gameLoop() {
         nearbyNPC = updateNPCManager(player, currentRoom);
         nearbyEnemy = updateEnemyManager(player, currentRoom);
         nearbyBoss = updateBossManager(player, currentRoom);
+        nearbyPlayer = findNearbyPlayer();
 
         nearbyDoor = findNearbyDoor(player, room);
 
         if (nearbyNPC) {
             interactionHint.textContent =
                 "Press E / INTERACT — " + nearbyNPC.name;
+        } else if (nearbyPlayer) {
+            interactionHint.textContent =
+                "Press E / CHALLENGE PLAYER";
         } else if (nearbyEnemy) {
             interactionHint.textContent =
                 "Press E / FIGHT — " + nearbyEnemy.name;
@@ -262,6 +292,7 @@ function gameLoop() {
         nearbyNPC = null;
         nearbyEnemy = null;
         nearbyBoss = null;
+        nearbyPlayer = null;
         nearbyDoor = null;
     }
 
